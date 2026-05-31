@@ -8,8 +8,7 @@ class ApiService {
   ApiService._internal();
 
   // Change this to your production URL when deploying
-  static const String PRODUCTION_URL =
-      'https://stock-take-backend.onrender.com/api';
+  static const String PRODUCTION_URL = 'https://stock-take-sa.onrender.com/api';
   static const String DEVELOPMENT_URL = 'http://localhost:3000/api';
 
   // Set to false for production, true for local development
