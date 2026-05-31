@@ -13,24 +13,24 @@ const port = process.env.PORT || 3000;
 // Production database connection
 const isProduction = process.env.NODE_ENV === 'production';
 
-// const db = new Pool({
-//     connectionString: process.env.DATABASE_URL || process.env.DB_CONNECTION_STRING,
-//     ssl: isProduction ? { rejectUnauthorized: false } : false,
-// });
+// Database connection - single declaration
+let db;
 
-// Database connection
-const db = new Pool({
-    host: process.env.DB_HOST || 'postgres',
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME || 'stock_take_system',
-    user: process.env.DB_USER || 'stock_take_user',
-    password: process.env.DB_PASSWORD || 'secure_password_here',
-});
-
-// If you want to use DATABASE_URL for production, add this line AFTER the above
 if (process.env.NODE_ENV === 'production') {
-    db.options.connectionString = process.env.DATABASE_URL;
-    db.options.ssl = { rejectUnauthorized: false };
+    // Production: Use DATABASE_URL from Render
+    db = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+    });
+} else {
+    // Development: Use local PostgreSQL
+    db = new Pool({
+        host: process.env.DB_HOST || 'postgres',
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME || 'stock_take_system',
+        user: process.env.DB_USER || 'stock_take_user',
+        password: process.env.DB_PASSWORD || 'secure_password_here',
+    });
 }
 // Admin API Key
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'your-super-secret-admin-key-2024';
