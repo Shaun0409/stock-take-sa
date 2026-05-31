@@ -13,10 +13,10 @@ const port = process.env.PORT || 3000;
 // Production database connection
 const isProduction = process.env.NODE_ENV === 'production';
 
-const db = new Pool({
-    connectionString: process.env.DATABASE_URL || process.env.DB_CONNECTION_STRING,
-    ssl: isProduction ? { rejectUnauthorized: false } : false,
-});
+// const db = new Pool({
+//     connectionString: process.env.DATABASE_URL || process.env.DB_CONNECTION_STRING,
+//     ssl: isProduction ? { rejectUnauthorized: false } : false,
+// });
 
 // Database connection
 const db = new Pool({
@@ -27,6 +27,11 @@ const db = new Pool({
     password: process.env.DB_PASSWORD || 'secure_password_here',
 });
 
+// If you want to use DATABASE_URL for production, add this line AFTER the above
+if (process.env.NODE_ENV === 'production') {
+    db.options.connectionString = process.env.DATABASE_URL;
+    db.options.ssl = { rejectUnauthorized: false };
+}
 // Admin API Key
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'your-super-secret-admin-key-2024';
 
