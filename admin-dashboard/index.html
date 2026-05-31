@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Take SA - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            z-index: 100;
+        }
+        
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        .sidebar nav a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .sidebar nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-suspended {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 4px;
+        }
+        
+        button.danger {
+            background: #dc3545;
+        }
+        
+        button.danger:hover {
+            background: #c82333;
+        }
+        
+        button.success {
+            background: #28a745;
+        }
+        
+        button.success:hover {
+            background: #218838;
+        }
+        
+        button.info {
+            background: #17a2b8;
+        }
+        
+        button.info:hover {
+            background: #138496;
+        }
+        
+        button.warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        button.warning:hover {
+            background: #e0a800;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .license-key {
+            font-family: monospace;
+            background: #f4f4f4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>📊 Stock Take SA</h2>
+        <nav>
+            <a href="#" onclick="showDashboard()">📈 Dashboard</a>
+            <a href="#" onclick="showCompanies()">🏢 Companies</a>
+            <a href="#" onclick="showLicenses()">🔑 Licenses</a>
+            <a href="#" onclick="showSettings()">⚙️ Settings</a>
+        </nav>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <h1>Super Admin Dashboard</h1>
+            <p>Manage your clients and their accounts</p>
+        </div>
+        
+        <div id="dashboardContent">
+            <div class="stats-grid" id="statsGrid">
+                <div class="loading">Loading stats...</div>
+            </div>
+            
+            <div class="card">
+                <h3>Recent Companies</h3>
+                <div style="overflow-x: auto;">
+                    <table id="recentCompaniesTable">
+                        <thead>
+                            <tr><th>Company Name</th><th>Contact Email</th><th>Status</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="recentCompaniesList">
+                            <tr><td colspan="4" class="loading">Loading companies...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="companiesContent" style="display:none;">
+            <div class="card">
+                <h3>All Companies</h3>
+                <button onclick="showAddCompanyModal()" style="background:#28a745; margin-bottom:20px;">➕ Add New Company</button>
+                <div style="overflow-x: auto;">
+                    <table id="allCompaniesTable">
+                        <thead>
+                            <tr><th>Company Name</th><th>Contact</th><th>License Key</th><th>Status</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="allCompaniesList">
+                            <tr><td colspan="5" class="loading">Loading companies...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="licensesContent" style="display:none;">
+            <div class="card">
+                <h3>License Validation Logs</h3>
+                <div style="overflow-x: auto;">
+                    <table id="licensesTable">
+                        <thead>
+                            <tr><th>Company</th><th>License Key</th><th>Result</th><th>Device ID</th><th>Time</th></tr>
+                        </thead>
+                        <tbody id="licensesList">
+                            <tr><td colspan="5" class="loading">Loading logs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="settingsContent" style="display:none;">
+            <div class="card">
+                <h3>Admin Settings</h3>
+                <p><strong>API Key:</strong> <code id="apiKey">your-super-secret-admin-key-2024</code></p>
+                <p><strong>Backend Status:</strong> <span id="backendStatus">Checking...</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Company Modal -->
+    <div id="addCompanyModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Company</h2>
+            <input type="text" id="companyName" placeholder="Company Name" required>
+            <input type="email" id="contactEmail" placeholder="Contact Email" required>
+            <input type="text" id="contactPerson" placeholder="Contact Person">
+            <input type="text" id="contactPhone" placeholder="Contact Phone">
+            <div style="margin-top: 20px;">
+                <button onclick="createCompany()" style="background:#28a745;">Create Company</button>
+                <button onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_KEY = 'your-super-secret-admin-key-2024';
+        const API_URL = 'http://localhost:3000/api/admin';
+        
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/companies`, {
+                    headers: { 'X-Admin-Key': ADMIN_KEY }
+                });
+                const companies = await response.json();
+                
+                const activeCount = companies.filter(c => c.subscription_status === 'active').length;
+                const suspendedCount = companies.filter(c => c.subscription_status === 'suspended').length;
+                
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card"><h3>Total Companies</h3><div class="number">${companies.length}</div></div>
+                    <div class="stat-card"><h3>Active Companies</h3><div class="number">${activeCount}</div></div>
+                    <div class="stat-card"><h3>Suspended</h3><div class="number">${suspendedCount}</div></div>
+                `;
+                
+                const recentList = document.getElementById('recentCompaniesList');
+                recentList.innerHTML = companies.slice(0, 5).map(company => `
+                    <tr>
+                        <td><strong>${escapeHtml(company.company_name)}</strong></td>
+                        <td>${escapeHtml(company.contact_email)}</td>
+                        <td><span class="status-badge status-${company.subscription_status}">${company.subscription_status}</span></td>
+                        <td>
+                            ${company.subscription_status === 'active' ? 
+                                `<button class="danger" onclick="deactivateCompany('${company.id}')">Deactivate</button>` :
+                                `<button class="success" onclick="reactivateCompany('${company.id}')">Reactivate</button>`
+                            }
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('statsGrid').innerHTML = '<div class="error">Error loading dashboard</div>';
+            }
+        }
+        
+        async function loadAllCompanies() {
+            try {
+                const response = await fetch(`${API_URL}/companies`, {
+                    headers: { 'X-Admin-Key': ADMIN_KEY }
+                });
+                const companies = await response.json();
+                
+                const list = document.getElementById('allCompaniesList');
+                list.innerHTML = companies.map(company => `
+                    <tr>
+                        <td><strong>${escapeHtml(company.company_name)}</strong><br><small>${escapeHtml(company.contact_person || '')}</small></td>
+                        <td>${escapeHtml(company.contact_email)}</td>
+                        <td><code class="license-key">${company.license_key}</code></td>
+                        <td><span class="status-badge status-${company.subscription_status}">${company.subscription_status}</span></td>
+                        <td>
+                            ${company.subscription_status === 'active' ? 
+                                `<button class="danger" onclick="deactivateCompany('${company.id}')">🔴 Deactivate</button>` :
+                                `<button class="success" onclick="reactivateCompany('${company.id}')">🟢 Reactivate</button>`
+                            }
+                            <button class="info" onclick="regenerateLicense('${company.id}')">🔄 New Key</button>
+                            <button class="warning" onclick="deleteCompany('${company.id}', '${escapeHtml(company.company_name)}')">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('allCompaniesList').innerHTML = '<tr><td colspan="5" class="error">Error loading companies</td></tr>';
+            }
+        }
+        
+        async function deleteCompany(id, name) {
+            if (!confirm(`⚠️ PERMANENT DELETE\n\nAre you sure you want to permanently delete "${name}"?\n\nThis will remove ALL data including:\n- All stores\n- All products\n- All stock takes\n- License logs\n\nThis action CANNOT be undone!`)) return;
+            
+            const confirmDelete = confirm(`Type "${name}" to confirm deletion:`);
+            if (!confirmDelete) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/companies/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-Admin-Key': ADMIN_KEY }
+                });
+                
+                if (response.ok) {
+                    alert(`✅ Company "${name}" has been permanently deleted.`);
+                    loadDashboard();
+                    loadAllCompanies();
+                } else {
+                    const error = await response.json();
+                    alert('❌ Failed to delete company: ' + (error.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+        
+        async function regenerateLicense(id) {
+            if (!confirm('⚠️ Generate new license key?\n\nOld key will stop working immediately.\n\nClient will need the new key to continue using the system.')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/companies/${id}/regenerate-license`, {
+                    method: 'PUT',
+                    headers: { 
+                        'X-Admin-Key': ADMIN_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`✅ License key regenerated!\n\nNew License Key: ${data.company.license_key}\n\nSave this and provide to the client.`);
+                    loadAllCompanies();
+                    loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('❌ Failed to regenerate license: ' + (error.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+        
+        async function deactivateCompany(id) {
+            const reason = prompt('Reason for deactivation:', 'Non-payment');
+            if (!reason) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/companies/${id}/deactivate`, {
+                    method: 'PUT',
+                    headers: { 
+                        'X-Admin-Key': ADMIN_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
+                });
+                
+                if (response.ok) {
+                    alert('✅ Company deactivated successfully!');
+                    loadDashboard();
+                    loadAllCompanies();
+                } else {
+                    alert('❌ Error deactivating company');
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+        
+        async function reactivateCompany(id) {
+            if (!confirm('Reactivate this company?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/companies/${id}/reactivate`, {
+                    method: 'PUT',
+                    headers: { 'X-Admin-Key': ADMIN_KEY }
+                });
+                
+                if (response.ok) {
+                    alert('✅ Company reactivated successfully!');
+                    loadDashboard();
+                    loadAllCompanies();
+                } else {
+                    alert('❌ Error reactivating company');
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+        
+        async function createCompany() {
+            const companyData = {
+                company_name: document.getElementById('companyName').value,
+                contact_email: document.getElementById('contactEmail').value,
+                contact_person: document.getElementById('contactPerson').value,
+                contact_phone: document.getElementById('contactPhone').value
+            };
+            
+            if (!companyData.company_name || !companyData.contact_email) {
+                alert('Please fill in Company Name and Contact Email');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/companies`, {
+                    method: 'POST',
+                    headers: { 
+                        'X-Admin-Key': ADMIN_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(companyData)
+                });
+                
+                if (response.ok) {
+                    const company = await response.json();
+                    alert(`✅ Company created!\n\nLicense Key: ${company.license_key}\n\nSave this key for the client.`);
+                    closeModal();
+                    loadDashboard();
+                    loadAllCompanies();
+                    document.getElementById('companyName').value = '';
+                    document.getElementById('contactEmail').value = '';
+                    document.getElementById('contactPerson').value = '';
+                    document.getElementById('contactPhone').value = '';
+                } else {
+                    const error = await response.json();
+                    alert('❌ Error creating company: ' + (error.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+        
+        async function loadLicenses() {
+            try {
+                const response = await fetch(`${API_URL}/companies`, {
+                    headers: { 'X-Admin-Key': ADMIN_KEY }
+                });
+                const companies = await response.json();
+                
+                let allLogs = [];
+                for (const company of companies) {
+                    try {
+                        const statsRes = await fetch(`${API_URL}/companies/${company.id}/stats`, {
+                            headers: { 'X-Admin-Key': ADMIN_KEY }
+                        });
+                        const stats = await statsRes.json();
+                        if (stats.recent_validations && stats.recent_validations.length > 0) {
+                            allLogs.push(...stats.recent_validations.map(log => ({ ...log, company_name: company.company_name })));
+                        }
+                    } catch(e) {}
+                }
+                
+                allLogs.sort((a, b) => new Date(b.validated_at) - new Date(a.validated_at));
+                
+                const list = document.getElementById('licensesList');
+                if (allLogs.length === 0) {
+                    list.innerHTML = '<tr><td colspan="5" class="loading">No license validation logs yet</td></tr>';
+                } else {
+                    list.innerHTML = allLogs.slice(0, 50).map(log => `
+                        <tr>
+                            <td>${escapeHtml(log.company_name || 'N/A')}</td>
+                            <td><code class="license-key">${log.license_key}</code></td>
+                            <td><span class="status-badge status-${log.validation_result}">${log.validation_result}</span></td>
+                            <td><small>${log.device_id || 'N/A'}</small></td>
+                            <td><small>${new Date(log.validated_at).toLocaleString()}</small></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showDashboard() {
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('companiesContent').style.display = 'none';
+            document.getElementById('licensesContent').style.display = 'none';
+            document.getElementById('settingsContent').style.display = 'none';
+            loadDashboard();
+        }
+        
+        function showCompanies() {
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('companiesContent').style.display = 'block';
+            document.getElementById('licensesContent').style.display = 'none';
+            document.getElementById('settingsContent').style.display = 'none';
+            loadAllCompanies();
+        }
+        
+        function showLicenses() {
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('companiesContent').style.display = 'none';
+            document.getElementById('licensesContent').style.display = 'block';
+            document.getElementById('settingsContent').style.display = 'none';
+            loadLicenses();
+        }
+        
+        function showSettings() {
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('companiesContent').style.display = 'none';
+            document.getElementById('licensesContent').style.display = 'none';
+            document.getElementById('settingsContent').style.display = 'block';
+            document.getElementById('apiKey').innerText = ADMIN_KEY;
+            document.getElementById('backendStatus').innerHTML = '<span style="color:green;">✅ Online</span>';
+        }
+        
+        function showAddCompanyModal() {
+            document.getElementById('addCompanyModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('addCompanyModal').style.display = 'none';
+        }
+        
+        // Initialize
+        showDashboard();
+        
+        setInterval(() => {
+            if (document.getElementById('dashboardContent').style.display !== 'none') loadDashboard();
+            if (document.getElementById('companiesContent').style.display !== 'none') loadAllCompanies();
+        }, 30000);
+    </script>
+</body>
+</html>

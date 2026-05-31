@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:14
+    container_name: stock_take_db
+    environment:
+      POSTGRES_USER: stock_take_user
+      POSTGRES_PASSWORD: secure_password_here
+      POSTGRES_DB: stock_take_system
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: stock_take_backend
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: stock_take_system
+      DB_USER: stock_take_user
+      DB_PASSWORD: secure_password_here
+      NODE_ENV: development
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: stock_take_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@stocktake.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

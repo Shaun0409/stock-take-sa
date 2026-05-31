@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Stock Take SA</title></head>
+<body>
+<h1>Stock Take SA System</h1>
+<p>Backend Status: <span id="status">Checking...</span></p>
+<script>
+fetch('http://localhost:3000/health')
+  .then(res => res.json())
+  .then(data => document.getElementById('status').innerHTML = '? Online')
+  .catch(() => document.getElementById('status').innerHTML = '? Offline');
+</script>
+<p><a href="index.html">Go to Admin Dashboard</a></p>
+</body>
+</html>
