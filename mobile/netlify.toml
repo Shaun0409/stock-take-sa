@@ -1,10 +1,31 @@
 [build]
-  command = "flutter build web --release"
-  publish = "build/web"
+  base = "mobile"
+  publish = "mobile/build/web"
 
 [build.environment]
-  FLUTTER_VERSION = "3.44.0"
-  DART_DEFINES = "API_URL=https://your-backend-url.onrender.com/api"
+  FLUTTER_VERSION = "3.24.0"
+
+# Install Flutter and build
+[build.processing]
+  skip_processing = false
+
+[build.services]
+  [build.services.flutter]
+    name = "flutter"
+
+# Build command that installs Flutter first
+command = """
+# Install Flutter
+git clone https://github.com/flutter/flutter.git --depth 1 -b stable /opt/build/flutter
+export PATH="$PATH:/opt/build/flutter/bin"
+flutter precache
+flutter doctor
+
+# Build the app
+flutter clean
+flutter pub get
+flutter build web --release
+"""
 
 [[redirects]]
   from = "/*"
